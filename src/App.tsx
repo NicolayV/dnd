@@ -18,71 +18,52 @@ interface DraggableImageProps {
   className?: string;
   alt?: string;
 }
+  
+const SESSION_STORAGE_KEY = 'positions';
+
+const defaultPositions: Record<UniqueIdentifier, Position> = {
+  img1: { x: 10, y: 10 },
+  img2: { x: 10, y: 30 },
+};
 
 // Модификатор, ограничивающий перетаскивание, чтобы элемент не выходил за границы контейнера
 const restrictToPartialOverflow: Modifier = ({ transform, activeNodeRect, containerNodeRect }) => {
 	if (!activeNodeRect || !containerNodeRect) return transform;
-
-	// Значение видимости: какая доля элемента должна оставаться внутри контейнера
-	const visibleFraction = 0.4; 
-	
-	// Исходный центр элемента (учитывая, что позиционирование по центру)
+  
+	const visibleFraction = 0.4;
 	const origCenterX = activeNodeRect.left + activeNodeRect.width / 2;
 	const origCenterY = activeNodeRect.top + activeNodeRect.height / 2;
-	
-	const containerWidth = containerNodeRect.width;
-	const containerHeight = containerNodeRect.height;
-	
-	// Допустимые границы для центра элемента
+  
+	// Вычисляем допустимые границы для центра элемента с использованием right и bottom
 	const allowedMinCenterX = containerNodeRect.left + visibleFraction * activeNodeRect.width;
-	const allowedMaxCenterX = containerNodeRect.left + containerWidth + (1 - visibleFraction) * activeNodeRect.width;
+	const allowedMaxCenterX = containerNodeRect.right + (1 - visibleFraction) * activeNodeRect.width;
 	const allowedMinCenterY = containerNodeRect.top + visibleFraction * activeNodeRect.height;
-	const allowedMaxCenterY = containerNodeRect.top + containerHeight + (1 - visibleFraction) * activeNodeRect.height;
-	
+	const allowedMaxCenterY = containerNodeRect.bottom + (1 - visibleFraction) * activeNodeRect.height;
+  
 	const newCenterX = origCenterX + transform.x;
 	const newCenterY = origCenterY + transform.y;
-	
+  
 	const clampedCenterX = Math.min(Math.max(newCenterX, allowedMinCenterX), allowedMaxCenterX);
 	const clampedCenterY = Math.min(Math.max(newCenterY, allowedMinCenterY), allowedMaxCenterY);
-	
+  
 	return {
 	  x: clampedCenterX - origCenterX,
 	  y: clampedCenterY - origCenterY,
 	  scaleX: transform.scaleX,
 	  scaleY: transform.scaleY,
 	};
-  };
-  
-  
-
-const LOCAL_STORAGE_KEY = 'positions';
-
-const defaultPositions: Record<UniqueIdentifier, Position> = {
-  img1: { x: 0, y: 0 },
-  img2: { x: 0, y: 0 },
 };
 
 // Вспомогательная функция для расчёта новых процентных координат
 const calculatePercentagePosition = (
-  prevPosition: Position,
-  delta: { x: number; y: number },
-  containerWidth: number,
-  containerHeight: number
-): Position => {
-  // Переводим предыдущие координаты из процентов в пиксели
-  const prevXInPixels = (prevPosition.x / 100) * containerWidth;
-  const prevYInPixels = (prevPosition.y / 100) * containerHeight;
-
-  // Добавляем смещение в пикселях
-  const newXInPixels = prevXInPixels + delta.x;
-  const newYInPixels = prevYInPixels + delta.y;
-
-  // Пересчитываем обратно в проценты
-  return {
-    x: Number(((newXInPixels / containerWidth) * 100).toFixed(6)),
-    y: Number(((newYInPixels / containerHeight) * 100).toFixed(6)),
-  };
-};
+	prevPosition: Position,
+	delta: { x: number; y: number },
+	containerWidth: number,
+	containerHeight: number
+  ): Position => ({
+	x: Number((prevPosition.x + (delta.x * 100) / containerWidth).toFixed(6)),
+	y: Number((prevPosition.y + (delta.y * 100) / containerHeight).toFixed(6)),
+  });
 
 const PositionsPanel: React.FC<{ img1: Position; img2: Position }> = ({ img1, img2 }) => (
   <div className="info">
@@ -112,12 +93,12 @@ function App() {
   const dragContainerRef = useRef<HTMLDivElement>(null);
 
   const [positions, setPositions] = useState<Record<UniqueIdentifier, Position>>(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
     return stored ? JSON.parse(stored) : defaultPositions;
   });
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(positions));
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(positions));
   }, [positions]);
 
   const onDragEnd = (event: DragEndEvent) => {

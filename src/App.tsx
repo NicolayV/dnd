@@ -6,7 +6,7 @@ import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 
-export interface Position {
+interface Position {
   x: number;
   y: number;
 }
@@ -82,11 +82,27 @@ const DraggableImage: React.FC<DraggableImageProps> = ({ id, src, position, clas
     left: `${position.x}%`,
     top: `${position.y}%`,
     transform: finalTransform,
-    touchAction: 'none',
+    touchAction: 'none', // важно для dnd-kit на мобильных
     cursor: 'grab',
-  };
+	
+	userSelect: 'none', // запрет выделения	
+    WebkitUserSelect: 'none', // запрет выделять длинным тапом в тч Safari
+    WebkitTouchCallout: 'none', // Блокирует iOS long-press меню	
+	pointerEvents: 'auto', // на случай если переопределит родитель
+  	};
 
-  return <img ref={setNodeRef} src={src} style={style} alt={alt} className={className} {...listeners} {...attributes} />;
+  return <img 
+  			ref={setNodeRef} 
+			src={src} 
+			style={style} 
+			alt={alt} 
+			className={className}
+			{...listeners} 
+			{...attributes}
+
+			draggable={false} // отключаем нативный drag
+  			onContextMenu={(e) => e.preventDefault()} // блокирует правый клик / long-press
+  		/>;
 };
 
 function App() {
@@ -116,10 +132,20 @@ function App() {
 
   return (
     <div className="wrapper">
-      <PositionsPanel img1={positions.img1} img2={positions.img2} />
-
       <DndContext onDragEnd={onDragEnd} modifiers={[restrictToPartialOverflow]}>
-        <div ref={dragContainerRef} className="container">
+        <div 
+			ref={dragContainerRef} 
+			className="container"
+			
+			onContextMenu={(e) => e.preventDefault()} // блокирует long-press меню
+			onTouchStart={(e) => e.preventDefault()} // предотвращает системные жесты, выделение
+			style={{
+			  userSelect: 'none', // запрет выделения
+			  WebkitUserSelect: 'none', // для iOS Safari
+			  WebkitTouchCallout: 'none', // запрет long-press меню
+			  touchAction: 'none', // важно для dnd-kit
+			}}
+		>
           <DraggableImage
             id="img1"
             src={viteLogo}
@@ -143,6 +169,8 @@ function App() {
           <div className="box5">5</div>
         </div>
 	  </DndContext>
+
+      <PositionsPanel img1={positions.img1} img2={positions.img2} />
 	</div>
   )
 }

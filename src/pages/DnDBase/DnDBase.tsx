@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { DndContext, DragEndEvent, Modifier, UniqueIdentifier, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
-import reactLogo from './assets/react.svg';
+import reactLogo from '../../assets/react.svg';
 import viteLogo from '/vite.svg';
-import './App.css';
+import './DnDBase.css';
 
 interface Position {
   x: number;
@@ -105,7 +105,7 @@ const DraggableImage: React.FC<DraggableImageProps> = ({ id, src, position, clas
   		/>;
 };
 
-function App() {
+function DnDBase() {
   const dragContainerRef = useRef<HTMLDivElement>(null);
 
   const [positions, setPositions] = useState<Record<UniqueIdentifier, Position>>(() => {
@@ -175,4 +175,4 @@ function App() {
   )
 }
 
-export default App
+export default DnDBase

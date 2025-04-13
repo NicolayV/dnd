@@ -45,7 +45,7 @@ const GestureBottomSheet: React.FC = () => {
           ? close(vy)
           : open({ canceled: true });
       } else {
-        api.start({ y: oy, immediate: true });
+        api.start({ y: oy, immediate: false, config: config.default,  }); //  api.start({ y: oy, immediate: true });
       }
     },
     {

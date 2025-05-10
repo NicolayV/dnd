@@ -3,12 +3,13 @@ import styled from 'styled-components';
 interface TransientSheetProps {
   $sheetOffset: number;
   $swipeOffset: number;
+  $zIndex: number;
 }
 
 export const Sheet = styled.div<TransientSheetProps>(
-  ({ $sheetOffset, $swipeOffset }) => ({
+  ({ $sheetOffset, $swipeOffset, $zIndex }) => ({
     boxSizing: 'border-box',
-    zIndex: 10000,
+    zIndex: $zIndex,
 
     position: 'absolute',
 
@@ -27,7 +28,6 @@ export const Sheet = styled.div<TransientSheetProps>(
 );
 
 export const Shadow = styled.div(() => ({
-  zIndex: 1000,
   position: 'absolute',
 
   height: '100%',

@@ -1,7 +1,6 @@
 import React from 'react';
-import { animated, config, SpringValue, SpringRef } from '@react-spring/web';
+import { animated, config, SpringRef, SpringValue } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
-import { useContainerHeight } from './hooks/useContainerHeight';
 import * as S from './styles';
 import {
   CLOSE_THRESHOLD,
@@ -10,7 +9,8 @@ import {
   SHADOW_OFFSET,
   SHEET_OFFSET,
   SWIPE_OFFSET,
-} from './constants';
+  Z_INDEX,
+} from '../../constants';
 
 const AnimatedSheet = animated(S.Sheet);
 const AnimatedShadow = animated(S.Shadow);
@@ -18,6 +18,7 @@ const AnimatedShadow = animated(S.Shadow);
 interface TopSheetProps {
   children: React.ReactNode;
   dragEnabled: boolean;
+  shadowEnabled: boolean;
   curtainContainerRef: React.RefObject<HTMLDivElement | null>;
   y: SpringValue<number>;
   api: SpringRef<{ y: number }>;
@@ -26,12 +27,11 @@ interface TopSheetProps {
 const TopSheet: React.FC<TopSheetProps> = ({
   children,
   dragEnabled,
+  shadowEnabled,
   curtainContainerRef,
   api,
   y,
 }) => {
-  const containerHeight = useContainerHeight(curtainContainerRef);
-
   const open = () => {
     api.start({
       y: 0,
@@ -41,6 +41,10 @@ const TopSheet: React.FC<TopSheetProps> = ({
   };
 
   const close = (velocity = 0) => {
+    if (!curtainContainerRef.current) return;
+    const { height: containerHeight } =
+      curtainContainerRef.current.getBoundingClientRect();
+
     api.start({
       y: -containerHeight,
       immediate: false,
@@ -61,6 +65,10 @@ const TopSheet: React.FC<TopSheetProps> = ({
       }
 
       if (last) {
+        if (!curtainContainerRef.current) return;
+        const { height: containerHeight } =
+          curtainContainerRef.current.getBoundingClientRect();
+
         const isCloseOrOpen =
           -offsetY > containerHeight * CLOSE_THRESHOLD ||
           (velocityY > CLOSE_THRESHOLD && directionY < 0);
@@ -79,9 +87,12 @@ const TopSheet: React.FC<TopSheetProps> = ({
     }
   );
 
-  const display = y.to((yValue) =>
-    -yValue <= containerHeight ? 'flex' : 'none'
-  );
+  const display = y.to((yValue) => {
+    const { current } = curtainContainerRef;
+    if (current == null) return 'flex';
+
+    return -yValue === current.getBoundingClientRect().height ? 'none' : 'flex';
+  });
 
   const opacity = y.to((yValue) => {
     const normalized = (yValue + SHADOW_OFFSET) / SHADOW_OFFSET;
@@ -109,21 +120,24 @@ const TopSheet: React.FC<TopSheetProps> = ({
       <AnimatedSheet
         $sheetOffset={SHEET_OFFSET}
         $swipeOffset={SWIPE_OFFSET}
+        $zIndex={Z_INDEX.topSheet}
         {...bind()}
         style={{ display, top: `-${SHEET_OFFSET}px`, y }}
       >
         {children}
       </AnimatedSheet>
 
-      <AnimatedShadow
-        style={{
-          opacity,
-          marginLeft: margin,
-          marginRight: margin,
-          display: shadowDisplay,
-          width,
-        }}
-      />
+      {shadowEnabled && (
+        <AnimatedShadow
+          style={{
+            opacity,
+            marginLeft: margin,
+            marginRight: margin,
+            display: shadowDisplay,
+            width,
+          }}
+        />
+      )}
     </>
   );
 };

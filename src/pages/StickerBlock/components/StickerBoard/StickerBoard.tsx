@@ -5,7 +5,12 @@ import { useDisableNativeGestures } from './hooks/useDisableNativeGestures';
 import { createTransform, percentToPixels, pixelsToPercent } from './utils';
 import * as S from './styles';
 
-import reactLogo from '../../../../assets/react.svg';
+import reactLogo from '../../assets/react.svg';
+import clever from '../../assets/clever.png';
+import hands from '../../assets/hands.png';
+
+const srcImg = [reactLogo, clever, hands];
+
 import { DRAG_CONFIG, HALF_CARD_SIZE } from './constants';
 
 const AnimatedCard = animated(S.Card);
@@ -157,7 +162,7 @@ const StickerBoard: React.FC<StickerBoardProps> = ({ images, isEnabled }) => {
           {...bind(i)}
           style={{ transform: createTransform(props) }}
         >
-          <S.Img src={reactLogo} draggable={false} />
+          <S.Img src={srcImg[i]} draggable={false} />
         </AnimatedCard>
       ))}
     </S.Container>

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useSpring } from '@react-spring/web';
 import {
   TopSheet,
@@ -6,8 +6,15 @@ import {
   StickerBoard,
   Navbar,
   OpenButton,
+  BottomSheet,
 } from './components';
 import * as S from './styles';
+import {
+  BOTTOM_SHEET_OFFSET,
+  NAVBAR_OFFSET,
+  NO_BOUNCE_CONFIG,
+} from './constants';
+import StickerPack from './components/StickerPack/StickerPack';
 
 const images = [
   { id: '1', x: 60.9304, y: 80.9129 },
@@ -15,42 +22,89 @@ const images = [
   { id: '3', x: 65.9304, y: 79.9129 },
 ];
 
-const NO_BOUNCE_CONFIG = { tension: 200, friction: 30, clamp: true };
-const NAVBAR_OFFSET = -60;
-
 const StickerBlock: React.FC = () => {
   const curtainContainerRef = useRef<HTMLDivElement | null>(null);
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [{ y }, api] = useSpring(() => ({ y: 0 }));
+
+  const [topSheetEnabled, setTopSheetEnabled] = useState(true);
+  const [stickerBoardEnabled, setStickerBoardEnabled] = useState(false);
+  const [navbarOpen, setNavbarOpen] = useState(false);
+
+  const [{ y: topY }, topApi] = useSpring(() => ({ y: 0 }));
+  const [{ y: bottomY }, bottomApi] = useSpring(() => ({ y: 0 }));
+
+  useLayoutEffect(() => {
+    if (curtainContainerRef.current) {
+      const { height } = curtainContainerRef.current.getBoundingClientRect();
+
+      bottomApi.start({
+        y: height - BOTTOM_SHEET_OFFSET,
+        immediate: true,
+      });
+    }
+  }, []);
 
   const openTopSheet = (y: number = 0) =>
-    api.start({ y, config: NO_BOUNCE_CONFIG });
+    topApi.start({ y, config: NO_BOUNCE_CONFIG });
 
   const handleEdit = () => {
     openTopSheet(NAVBAR_OFFSET);
-    setIsEnabled(true);
+
+    setTopSheetEnabled(false);
+    setStickerBoardEnabled(true);
+
+    setNavbarOpen(true);
   };
 
-  const handleOpen = () => {
+  const handleOpenTopSheet = () => {
     openTopSheet();
-    setIsEnabled(false);
+
+    setTopSheetEnabled(true);
+    setStickerBoardEnabled(false);
+
+    setNavbarOpen(false);
+  };
+
+  const handleOpenBottomSheet = () => {
+    bottomApi.start({
+      y: 0,
+      immediate: false,
+      config: NO_BOUNCE_CONFIG,
+    });
+
+    setStickerBoardEnabled(false);
   };
 
   return (
     <S.RootContainer>
       <S.CurtainContainer ref={curtainContainerRef}>
         <TopSheet
-          api={api}
-          y={y}
-          dragEnabled={!isEnabled}
+          api={topApi}
+          y={topY}
+          dragEnabled={topSheetEnabled}
+          shadowEnabled={!navbarOpen}
           curtainContainerRef={curtainContainerRef}
         >
           <Toolbar onEdit={handleEdit} />
-          <StickerBoard isEnabled={isEnabled} images={images} />
+          <StickerBoard isEnabled={stickerBoardEnabled} images={images} />
         </TopSheet>
 
-        {isEnabled && <Navbar onOpen={handleOpen} />}
-        <OpenButton onClick={handleOpen} />
+        <Navbar
+          isNavbarOpen={navbarOpen}
+          onConfirm={handleOpenTopSheet}
+          onAddClick={handleOpenBottomSheet}
+        />
+
+        {navbarOpen && (
+          <BottomSheet
+            api={bottomApi}
+            y={bottomY}
+            curtainContainerRef={curtainContainerRef}
+          >
+            <StickerPack />
+          </BottomSheet>
+        )}
+
+        <OpenButton onClick={handleOpenTopSheet} />
       </S.CurtainContainer>
     </S.RootContainer>
   );

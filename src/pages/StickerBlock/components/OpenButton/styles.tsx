@@ -2,7 +2,6 @@ import styled from 'styled-components';
 
 export const OpenBtn = styled.button(() => ({
   position: 'absolute',
-  zIndex: '100',
   top: '20px',
   right: '20px',
 

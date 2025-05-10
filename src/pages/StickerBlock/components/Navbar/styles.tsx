@@ -6,7 +6,7 @@ export const Navbar = styled.div(() => ({
 
   display: 'flex',
   flexDirection: 'column',
-  gap: '4px',
+  paddingBottom: '24px',
 }));
 
 export const BtnToolbar = styled.div(() => ({
@@ -19,23 +19,12 @@ export const BtnToolbar = styled.div(() => ({
   '& > :first-child': {
     width: '44px',
     height: '44px',
+    borderRadius: '80px',
   },
 
   '& > :last-child': {
     width: '100px',
     height: '44px',
-  },
-}));
-
-export const HomeIndicator = styled.div(() => ({
-  height: '20px',
-
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-
-  '& > div': {
-    border: '2px solid grey',
-    width: '80px',
+    borderRadius: '80px',
   },
 }));

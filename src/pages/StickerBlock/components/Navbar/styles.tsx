@@ -2,11 +2,10 @@ import styled from 'styled-components';
 
 export const Navbar = styled.div(() => ({
   marginTop: 'auto',
-  paddingTop: '16px',
+  padding: '16px 0',
 
   display: 'flex',
   flexDirection: 'column',
-  paddingBottom: '24px',
 }));
 
 export const BtnToolbar = styled.div(() => ({

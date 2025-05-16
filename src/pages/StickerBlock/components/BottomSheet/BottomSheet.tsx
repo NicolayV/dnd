@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useDrag } from '@use-gesture/react';
+import { useOutsideClick } from './hooks/useOutsideClick';
 import { animated, config, SpringValue, SpringRef } from '@react-spring/web';
 import {
   BOTTOM_SHEET_OFFSET,
@@ -30,11 +31,16 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       curtainContainerRef.current.getBoundingClientRect();
 
     api.start({
-      y: containerHeight - BOTTOM_SHEET_OFFSET,
+      y: containerHeight - BOTTOM_SHEET_OFFSET + 20,
       immediate: false,
       config: config.stiff,
     });
   };
+
+  const bottomSheetRef = useRef<HTMLDivElement>(null);
+  useOutsideClick(bottomSheetRef, () => {
+    close();
+  });
 
   const bind = useDrag(
     ({ last, offset: [, offsetY], cancel }) => {
@@ -45,10 +51,13 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         const { height: containerHeight } =
           curtainContainerRef.current.getBoundingClientRect();
 
+        console.log('offsetY', offsetY);
+        console.log('containerHeight', containerHeight - 350);
+
         offsetY > containerHeight - 350
           ? close()
-          : api.start({ y: offsetY, immediate: false });
-      } else api.start({ y: offsetY, immediate: false, config: config.stiff });
+          : api.start({ y: offsetY - 200 + 64, immediate: false });
+      }
     },
     {
       from: () => [0, y.get()],
@@ -62,9 +71,10 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     <AnimatedSheet
       $sheetOffset={SHEET_OFFSET}
       $zIndex={Z_INDEX.bottomSheet}
-      style={{ bottom: `-${SHEET_OFFSET}px`, y }}
+      style={{ bottom: `-${SHEET_OFFSET + 64 + 20}px`, y }}
+      ref={bottomSheetRef}
     >
-      <S.SheetHandler {...bind()} />
+      <S.SheetHandler onClick={close} {...bind()} />
       {children}
     </AnimatedSheet>
   );

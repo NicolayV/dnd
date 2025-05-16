@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { useSpring } from '@react-spring/web';
+import { config, useSpring } from '@react-spring/web';
 import {
   TopSheet,
   Toolbar,
@@ -24,10 +24,14 @@ const images = [
 
 const StickerBlock: React.FC = () => {
   const curtainContainerRef = useRef<HTMLDivElement | null>(null);
+  const stickerPackRef = useRef<HTMLDivElement>(null);
 
   const [topSheetEnabled, setTopSheetEnabled] = useState(true);
   const [stickerBoardEnabled, setStickerBoardEnabled] = useState(false);
   const [navbarOpen, setNavbarOpen] = useState(false);
+  const [dragStickerId, setDragStickerId] = useState<number | null>(null);
+
+  console.log('stickerBoardEnabled', stickerBoardEnabled);
 
   const [{ y: topY }, topApi] = useSpring(() => ({ y: 0 }));
   const [{ y: bottomY }, bottomApi] = useSpring(() => ({ y: 0 }));
@@ -47,7 +51,7 @@ const StickerBlock: React.FC = () => {
     topApi.start({ y, config: NO_BOUNCE_CONFIG });
 
   const handleEdit = () => {
-    openTopSheet(NAVBAR_OFFSET);
+    openTopSheet(NAVBAR_OFFSET + 8); // TODO уменьшилась ширина Navbar, поэтому шторка открывается на 8px меньше
 
     setTopSheetEnabled(false);
     setStickerBoardEnabled(true);
@@ -66,9 +70,13 @@ const StickerBlock: React.FC = () => {
 
   const handleOpenBottomSheet = () => {
     bottomApi.start({
-      y: 0,
+      y: 0 - BOTTOM_SHEET_OFFSET + 64,
       immediate: false,
       config: NO_BOUNCE_CONFIG,
+      onRest: () => {
+        console.log('Анимация закончена');
+        stickerPackRef.current?.focus();
+      },
     });
 
     setStickerBoardEnabled(false);
@@ -85,13 +93,19 @@ const StickerBlock: React.FC = () => {
           curtainContainerRef={curtainContainerRef}
         >
           <Toolbar onEdit={handleEdit} />
-          <StickerBoard isEnabled={stickerBoardEnabled} images={images} />
+          <StickerBoard
+            isEnabled={stickerBoardEnabled}
+            images={images}
+            onStickerDragEnd={() => setDragStickerId(null)}
+            onStickerDragStart={(id) => setDragStickerId(id)}
+          />
         </TopSheet>
 
         <Navbar
           isNavbarOpen={navbarOpen}
           onConfirm={handleOpenTopSheet}
           onAddClick={handleOpenBottomSheet}
+          dragStickerId={dragStickerId}
         />
 
         {navbarOpen && (
@@ -100,7 +114,7 @@ const StickerBlock: React.FC = () => {
             y={bottomY}
             curtainContainerRef={curtainContainerRef}
           >
-            <StickerPack />
+            <StickerPack stickerPackRef={stickerPackRef} />
           </BottomSheet>
         )}
 

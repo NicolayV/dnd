@@ -40,9 +40,16 @@ const saveStoredPositions = (map: Record<string, PercentPosition>) => {
 interface StickerBoardProps {
   images: ImageData[];
   isEnabled: boolean;
+  onStickerDragStart: (val: number) => void;
+  onStickerDragEnd: () => void;
 }
 
-const StickerBoard: React.FC<StickerBoardProps> = ({ images, isEnabled }) => {
+const StickerBoard: React.FC<StickerBoardProps> = ({
+  images,
+  isEnabled,
+  onStickerDragStart,
+  onStickerDragEnd,
+}) => {
   useDisableNativeGestures();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -85,6 +92,12 @@ const StickerBoard: React.FC<StickerBoardProps> = ({ images, isEnabled }) => {
           [images[idx].id]: newPercent,
         };
         saveStoredPositions(savedPercentsRef.current);
+        onStickerDragEnd();
+      },
+
+      onDragStart: ({ args: [idx], pinching, cancel }) => {
+        if (pinching) return cancel();
+        onStickerDragStart(Number(idx)); // TODO fix idx type -> any
       },
     },
     {

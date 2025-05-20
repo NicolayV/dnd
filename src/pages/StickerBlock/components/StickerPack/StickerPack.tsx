@@ -4,9 +4,13 @@ import * as S from './styles';
 import commonImg from '../../assets/commonImg.png';
 const amountCommonImg = Array.from({ length: 25 }, (_, i) => i);
 
-const StickerPack: React.FC = () => {
+interface StickerPackProps {
+  stickerPackRef: React.RefObject<HTMLDivElement | null>;
+}
+
+const StickerPack: React.FC<StickerPackProps> = ({ stickerPackRef }) => {
   return (
-    <S.Board>
+    <S.Board ref={stickerPackRef}>
       {amountCommonImg.map((i) => (
         <S.CommonImg key={i} src={commonImg} />
       ))}

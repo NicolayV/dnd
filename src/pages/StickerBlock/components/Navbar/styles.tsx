@@ -2,29 +2,32 @@ import styled from 'styled-components';
 
 export const Navbar = styled.div(() => ({
   marginTop: 'auto',
-  paddingTop: '16px',
-
+  padding: '16px 20px',
   display: 'flex',
-  flexDirection: 'column',
-  paddingBottom: '24px',
+
+  '& > div': {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
 }));
 
-export const BtnToolbar = styled.div(() => ({
-  marginTop: 'auto',
-  padding: '0 20px',
+export const OpenBtn = styled.button(() => ({
+  width: '44px',
+  height: '44px',
+  borderRadius: '80px',
+}));
 
-  display: 'flex',
-  justifyContent: 'space-between',
+export const DeleteBtn = styled.button(() => ({
+  width: '44px',
+  height: '44px',
+  borderRadius: '80px',
+  alignSelf: 'center',
+}));
 
-  '& > :first-child': {
-    width: '44px',
-    height: '44px',
-    borderRadius: '80px',
-  },
-
-  '& > :last-child': {
-    width: '100px',
-    height: '44px',
-    borderRadius: '80px',
-  },
+export const ConfirmBtn = styled.button(() => ({
+  width: '100px',
+  height: '44px',
+  borderRadius: '80px',
+  alignSelf: 'flex-end',
 }));

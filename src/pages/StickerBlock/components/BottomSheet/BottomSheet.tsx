@@ -1,10 +1,9 @@
 import React, { useRef } from 'react';
-import { useDrag } from '@use-gesture/react';
 import { useOutsideClick } from './hooks/useOutsideClick';
 import { animated, config, SpringValue, SpringRef } from '@react-spring/web';
 import {
+  BOTTOM_SHEET_CLOSE_OFFSET,
   BOTTOM_SHEET_OFFSET,
-  DRAG_CANCEL_OFFSET,
   SHEET_OFFSET,
   Z_INDEX,
 } from '../../constants';
@@ -31,7 +30,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       curtainContainerRef.current.getBoundingClientRect();
 
     api.start({
-      y: containerHeight - BOTTOM_SHEET_OFFSET + 20, // TODO rework offset magic numbers
+      y: containerHeight - BOTTOM_SHEET_CLOSE_OFFSET,
       immediate: false,
       config: config.stiff,
     });
@@ -42,36 +41,14 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     close();
   });
 
-  const bind = useDrag(
-    ({ last, offset: [, offsetY], cancel }) => {
-      if (offsetY < -DRAG_CANCEL_OFFSET) cancel();
-
-      if (last) {
-        if (!curtainContainerRef.current) return;
-        const { height: containerHeight } =
-          curtainContainerRef.current.getBoundingClientRect();
-
-        offsetY > containerHeight - 350 // TODO rework offset magic numbers
-          ? close()
-          : api.start({ y: offsetY - 200 + 64, immediate: false }); // TODO rework offset magic numbers
-      }
-    },
-    {
-      from: () => [0, y.get()],
-      filterTaps: true,
-      bounds: { top: 0 },
-      rubberband: true,
-    }
-  );
-
   return (
     <AnimatedSheet
       $sheetOffset={SHEET_OFFSET}
       $zIndex={Z_INDEX.bottomSheet}
-      style={{ bottom: `-${SHEET_OFFSET + 64 + 20}px`, y }} // TODO rework offset magic numbers
+      style={{ bottom: `-${BOTTOM_SHEET_OFFSET}px`, y }}
       ref={bottomSheetRef}
     >
-      <S.SheetHandler onClick={close} {...bind()} />
+      <S.SheetHandler onClick={close} />
       {children}
     </AnimatedSheet>
   );

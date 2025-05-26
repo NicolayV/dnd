@@ -1,5 +1,4 @@
 import { to as interpolate, SpringValue } from '@react-spring/web';
-import { PercentPosition } from '../StickerBoard';
 
 export const createTransform = ({
   x,
@@ -14,17 +13,17 @@ export const createTransform = ({
   );
 
 export const percentToPixels = (
-  percent: PercentPosition,
+  percent: { x: number; y: number },
   containerRect: DOMRect
-): { xPx: number; yPx: number } => ({
-  xPx: (percent.x / 100) * containerRect.width,
-  yPx: (percent.y / 100) * containerRect.height,
+): { x: number; y: number } => ({
+  x: (percent.x / 100) * containerRect.width,
+  y: (percent.y / 100) * containerRect.height,
 });
 
 export const pixelsToPercent = (
   pixelOffset: [number, number],
   containerRect: DOMRect
-): PercentPosition => {
+): { x: number; y: number } => {
   const [xPx, yPx] = pixelOffset;
 
   return {

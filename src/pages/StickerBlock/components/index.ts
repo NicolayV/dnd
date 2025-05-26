@@ -4,3 +4,4 @@ export { default as OpenButton } from './OpenButton/OpenButton';
 export { default as StickerBoard } from './StickerBoard/StickerBoard';
 export { default as Toolbar } from './Toolbar/Toolbar';
 export { default as TopSheet } from './TopSheet/TopSheet';
+export { default as StickerPack } from './StickerPack/StickerPack';

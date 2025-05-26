@@ -1,6 +1,8 @@
 export const SHEET_OFFSET = 100;
 export const BOTTOM_SHEET_OFFSET = 200;
-export const NAVBAR_OFFSET = -60;
+export const BOTTOM_SHEET_CLOSE_OFFSET = 220;
+export const BOTTOM_SHEET_OPEN_OFFSET = 136;
+export const NAVBAR_OFFSET = -52;
 export const SHADOW_OFFSET = 60;
 export const SWIPE_OFFSET = 24;
 export const DRAG_CANCEL_OFFSET = 20;

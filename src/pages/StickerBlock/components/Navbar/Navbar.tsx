@@ -1,5 +1,5 @@
 import React from 'react';
-import { animated, useTransition } from '@react-spring/web';
+import { animated, SpringValue, useTransition } from '@react-spring/web';
 import { NO_BOUNCE_CONFIG } from '../../constants';
 import * as S from './styles';
 
@@ -19,14 +19,17 @@ const btnConfig = {
 
 const AnimatedNavbar = animated(S.Navbar);
 const AnimatedOpenBtn = animated(S.OpenBtn);
-const AnimatedDeleteBtn = animated(S.DeleteBtn);
 const AnimatedConfirmBtn = animated(S.ConfirmBtn);
+
+const AnimatedDeleteBtnWrap = animated(S.DeleteBtnWrap);
+const AnimatedDeleteBtn = animated(S.DeleteBtn);
 
 interface NavbarProps {
   onConfirm: () => void;
   onOpen: () => void;
   isNavbarOpen: boolean;
   hideDeleteBtn: boolean;
+  btnSpring: { percent: SpringValue<number> };
 }
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -34,11 +37,23 @@ const Navbar: React.FC<NavbarProps> = ({
   onOpen,
   isNavbarOpen,
   hideDeleteBtn,
+  btnSpring,
 }) => {
   const navTransitions = useTransition(isNavbarOpen, navConfig);
   const openBtnTransitions = useTransition(hideDeleteBtn, btnConfig);
   const deleteBtnTransitions = useTransition(!hideDeleteBtn, btnConfig);
   const confirmBtnTransitions = useTransition(hideDeleteBtn, btnConfig);
+
+  const deleteBtnStyle = {
+    backgroundColor: btnSpring.percent.to(
+      [100, 0],
+      ['rgba(124,135,152,0.16)', 'rgba(255,255,255,1)']
+    ),
+    color: btnSpring.percent.to(
+      [0, 100],
+      ['rgba(124,135,152,0.16)', 'rgba(255,255,255,1)']
+    ),
+  };
 
   return (
     <>
@@ -61,9 +76,11 @@ const Navbar: React.FC<NavbarProps> = ({
                 {deleteBtnTransitions(
                   (style, isVisible) =>
                     isVisible && (
-                      <AnimatedDeleteBtn style={style} onClick={() => {}}>
-                        X
-                      </AnimatedDeleteBtn>
+                      <AnimatedDeleteBtnWrap style={style}>
+                        <AnimatedDeleteBtn style={deleteBtnStyle}>
+                          X
+                        </AnimatedDeleteBtn>
+                      </AnimatedDeleteBtnWrap>
                     )
                 )}
               </div>

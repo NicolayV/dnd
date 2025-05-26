@@ -18,16 +18,23 @@ export const OpenBtn = styled.button(() => ({
   borderRadius: '80px',
 }));
 
-export const DeleteBtn = styled.button(() => ({
-  width: '44px',
-  height: '44px',
-  borderRadius: '80px',
-  alignSelf: 'center',
-}));
-
 export const ConfirmBtn = styled.button(() => ({
   width: '100px',
   height: '44px',
   borderRadius: '80px',
   alignSelf: 'flex-end',
+}));
+
+export const DeleteBtnWrap = styled.div(() => ({
+  alignSelf: 'center',
+}));
+
+export const DeleteBtn = styled.div(() => ({
+  width: '44px',
+  height: '44px',
+  borderRadius: '80px',
+
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
 }));

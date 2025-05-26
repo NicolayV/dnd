@@ -1,70 +1,89 @@
 import React, { useRef, useLayoutEffect, useEffect } from 'react';
-import { animated, useSprings } from '@react-spring/web';
+import { animated, SpringRef, useSprings } from '@react-spring/web';
 import { createUseGesture, dragAction, pinchAction } from '@use-gesture/react';
 import { useDisableNativeGestures } from './hooks/useDisableNativeGestures';
+import { StickerData } from './hooks/useStickerData';
 import { createTransform, percentToPixels, pixelsToPercent } from './utils';
+import { DRAG_CONFIG, HALF_CARD_SIZE } from './constants';
 import * as S from './styles';
 
-import reactLogo from '../../assets/react.svg';
-import clever from '../../assets/clever.png';
-import hands from '../../assets/hands.png';
-
-const srcImg = [reactLogo, clever, hands];
-
-import { DRAG_CONFIG, HALF_CARD_SIZE } from './constants';
-
 const AnimatedCard = animated(S.Card);
-
 const useGesture = createUseGesture([dragAction, pinchAction]);
 
-export type PercentPosition = { x: number; y: number };
-interface ImageData {
-  id: string;
-  x: number;
-  y: number;
-}
-const PERCENT_POSITIONS_KEY = 'gesturePercentPositions';
-const getStoredPositions = (): Record<string, PercentPosition> => {
-  try {
-    const raw = sessionStorage.getItem(PERCENT_POSITIONS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveStoredPositions = (map: Record<string, PercentPosition>) => {
-  sessionStorage.setItem(PERCENT_POSITIONS_KEY, JSON.stringify(map));
-};
-
 interface StickerBoardProps {
-  images: ImageData[];
   isEnabled: boolean;
   onStickerDragStart: (val: number) => void;
   onStickerDragEnd: () => void;
+  btnApi: SpringRef<{ percent: number }>;
+  stickerDataList: StickerData[];
+  updSticker: (stickerData: StickerData, idx: number) => void;
+  deleteSticker: (idx: number) => void;
 }
 
 const StickerBoard: React.FC<StickerBoardProps> = ({
-  images,
   isEnabled,
   onStickerDragStart,
   onStickerDragEnd,
+  btnApi,
+  stickerDataList,
+  updSticker,
+  deleteSticker,
 }) => {
   useDisableNativeGestures();
-
   const containerRef = useRef<HTMLDivElement>(null);
-  const savedPercentsRef =
-    useRef<Record<string, PercentPosition>>(getStoredPositions());
 
-  const [springProps, springApi] = useSprings(images.length, () => ({
+  const [springProps, springApi] = useSprings(stickerDataList.length, () => ({
     x: 0,
     y: 0,
     scale: 1,
     rotateZ: 0,
   }));
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    springApi.set((i) => {
+      const currentStickerData = stickerDataList[i];
+      const pos = percentToPixels(currentStickerData, containerRect);
+
+      return { x: pos.x, y: pos.y };
+    });
+  }, [stickerDataList]);
+
+  //   Initialize position on first render
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    springApi.set((i) => {
+      const currentStickerData = stickerDataList[i];
+      return percentToPixels(currentStickerData, containerRect);
+    });
+  }, []);
+
   const bind = useGesture(
     {
+      onDragStart: ({ args: [idx], pinching, cancel, offset: [, y] }) => {
+        if (pinching) return cancel();
+        onStickerDragStart(Number(idx));
+
+        const container = containerRef.current;
+        if (!container) return;
+        const containerHeight = container.getBoundingClientRect().height;
+        const startOffset = containerHeight - y;
+        const startAnimated = startOffset < 300;
+
+        if (startAnimated) {
+          const progress = Math.trunc(startOffset / 3);
+          btnApi.start({ percent: progress, immediate: true });
+        } else {
+          btnApi.start({ percent: 100, immediate: true });
+        }
+      },
+
       onDrag: ({ args: [idx], pinching, cancel, offset: [x, y] }) => {
         if (pinching) return cancel();
 
@@ -78,6 +97,17 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
               }
             : {}
         );
+
+        const container = containerRef.current;
+        if (!container) return;
+        const containerHeight = container.getBoundingClientRect().height;
+        const startOffset = containerHeight - y;
+        const startAnimated = startOffset < 300;
+
+        if (startAnimated) {
+          const progress = Math.trunc(startOffset / 3);
+          btnApi.start({ percent: progress });
+        }
       },
 
       onDragEnd: ({ args: [idx], offset }) => {
@@ -87,17 +117,24 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
         const rect = container.getBoundingClientRect();
         const newPercent = pixelsToPercent(offset, rect);
 
-        savedPercentsRef.current = {
-          ...savedPercentsRef.current,
-          [images[idx].id]: newPercent,
+        const newCurrentStickerData = {
+          ...stickerDataList[idx],
+          ...newPercent,
         };
-        saveStoredPositions(savedPercentsRef.current);
-        onStickerDragEnd();
-      },
 
-      onDragStart: ({ args: [idx], pinching, cancel }) => {
-        if (pinching) return cancel();
-        onStickerDragStart(Number(idx)); // TODO fix idx type -> any
+        updSticker(newCurrentStickerData, idx);
+        onStickerDragEnd();
+
+        const containerHeight = container.getBoundingClientRect().height;
+        const startOffset = containerHeight - offset[1];
+        const startAnimated = startOffset < 300;
+
+        if (startAnimated) {
+          const progress = Math.trunc(startOffset / 3);
+          if (progress === 0) {
+            deleteSticker(idx);
+          }
+        }
       },
     },
     {
@@ -114,32 +151,14 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
             left: 0,
             right: width,
             top: HALF_CARD_SIZE,
-            bottom: height - HALF_CARD_SIZE,
+            bottom: height,
           };
         },
+        rubberband: true,
       },
       enabled: isEnabled,
     }
   );
-
-  // Initialize position on first render
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const initialPercents = images.map((img) =>
-      savedPercentsRef.current[img.id]
-        ? savedPercentsRef.current[img.id]
-        : { x: img.x, y: img.y }
-    );
-
-    springApi.set((i) => {
-      const pct = initialPercents[i];
-      const { xPx, yPx } = percentToPixels(pct, containerRect);
-      return { x: xPx, y: yPx };
-    });
-  }, []);
 
   // Recalculate on container resize
   useEffect(() => {
@@ -148,16 +167,9 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
 
     const handleResize = () => {
       const containerRect = container.getBoundingClientRect();
-      const initialPercents = images.map((img) =>
-        savedPercentsRef.current[img.id]
-          ? savedPercentsRef.current[img.id]
-          : { x: img.x, y: img.y }
-      );
-
       springApi.set((i) => {
-        const pct = initialPercents[i];
-        const { xPx, yPx } = percentToPixels(pct, containerRect);
-        return { x: xPx, y: yPx };
+        const currentStickerData = stickerDataList[i];
+        return percentToPixels(currentStickerData, containerRect);
       });
     };
 
@@ -171,11 +183,11 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
     <S.Container ref={containerRef}>
       {springProps.map((props, i) => (
         <AnimatedCard
-          key={images[i].id}
+          key={stickerDataList[i].id + i}
           {...bind(i)}
           style={{ transform: createTransform(props) }}
         >
-          <S.Img src={srcImg[i]} draggable={false} />
+          <S.Img src={stickerDataList[i].src} draggable={false} />
         </AnimatedCard>
       ))}
     </S.Container>

@@ -6,31 +6,29 @@ import {
   CLOSE_THRESHOLD,
   DRAG_CANCEL_OFFSET,
   NO_BOUNCE_CONFIG,
-  SHADOW_OFFSET,
   SHEET_OFFSET,
   SWIPE_OFFSET,
   Z_INDEX,
 } from '../../constants';
 
 const AnimatedSheet = animated(S.Sheet);
-const AnimatedShadow = animated(S.Shadow);
 
 interface TopSheetProps {
   children: React.ReactNode;
   dragEnabled: boolean;
-  shadowEnabled: boolean;
   curtainContainerRef: React.RefObject<HTMLDivElement | null>;
   y: SpringValue<number>;
   api: SpringRef<{ y: number }>;
+  onDragStart: (directionY: number) => void;
 }
 
 const TopSheet: React.FC<TopSheetProps> = ({
   children,
   dragEnabled,
-  shadowEnabled,
   curtainContainerRef,
   api,
   y,
+  onDragStart,
 }) => {
   const open = () => {
     api.start({
@@ -54,6 +52,7 @@ const TopSheet: React.FC<TopSheetProps> = ({
 
   const bind = useDrag(
     ({
+      first,
       last,
       velocity: [, velocityY],
       direction: [, directionY],
@@ -62,6 +61,10 @@ const TopSheet: React.FC<TopSheetProps> = ({
     }) => {
       if (offsetY > DRAG_CANCEL_OFFSET) {
         cancel();
+      }
+
+      if (first) {
+        onDragStart(directionY);
       }
 
       if (last) {
@@ -94,51 +97,16 @@ const TopSheet: React.FC<TopSheetProps> = ({
     return -yValue === current.getBoundingClientRect().height ? 'none' : 'flex';
   });
 
-  const opacity = y.to((yValue) => {
-    const normalized = (yValue + SHADOW_OFFSET) / SHADOW_OFFSET;
-    return Math.min(Math.max(normalized, 0), 1);
-  });
-  const margin = y.to((yValue) => {
-    const normalized = (yValue + SHADOW_OFFSET) / SHADOW_OFFSET;
-    const clamped = Math.min(Math.max(normalized, 0), 1);
-
-    return `${(clamped * 10).toFixed(0)}px`;
-  });
-
-  const shadowDisplay = y.to((yValue) =>
-    -yValue >= SHADOW_OFFSET ? 'none' : 'flex'
-  );
-  const width = y.to((yValue) => {
-    const normalized = (yValue + SHADOW_OFFSET) / SHADOW_OFFSET;
-    const clamped = Math.min(Math.max(normalized, 0), 1);
-
-    return `calc(100% - ${(clamped * 2 * 10).toFixed(0)}px)`;
-  });
-
   return (
-    <>
-      <AnimatedSheet
-        $sheetOffset={SHEET_OFFSET}
-        $swipeOffset={SWIPE_OFFSET}
-        $zIndex={Z_INDEX.topSheet}
-        {...bind()}
-        style={{ display, top: `-${SHEET_OFFSET}px`, y }}
-      >
-        {children}
-      </AnimatedSheet>
-
-      {shadowEnabled && (
-        <AnimatedShadow
-          style={{
-            opacity,
-            marginLeft: margin,
-            marginRight: margin,
-            display: shadowDisplay,
-            width,
-          }}
-        />
-      )}
-    </>
+    <AnimatedSheet
+      $sheetOffset={SHEET_OFFSET}
+      $swipeOffset={SWIPE_OFFSET}
+      $zIndex={Z_INDEX.topSheet}
+      {...bind()}
+      style={{ display, top: `-${SHEET_OFFSET}px`, y }}
+    >
+      {children}
+    </AnimatedSheet>
   );
 };
 

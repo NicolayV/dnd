@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSpring } from '@react-spring/web';
 import {
   TopSheet,
@@ -21,6 +21,7 @@ import {
   StickerData,
   useStickerData,
 } from './components/StickerBoard/hooks/useStickerData';
+import CardLayoutWrapper from './components/CardLayoutWrapper/CardLayoutWrapper';
 
 const StickerBlock: React.FC = () => {
   const curtainContainerRef = useRef<HTMLDivElement | null>(null);
@@ -30,6 +31,7 @@ const StickerBlock: React.FC = () => {
     useStickerData();
 
   const [topSheetEnabled, setTopSheetEnabled] = useState(true);
+  const [topSheetDirection, setSheetDirection] = useState(0);
   const [stickerBoardEnabled, setStickerBoardEnabled] = useState(false);
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [dragStickerId, setDragStickerId] = useState<number | null>(null);
@@ -56,6 +58,8 @@ const StickerBlock: React.FC = () => {
     bottomSheetApi.start({ y, config: NO_BOUNCE_CONFIG });
 
   const handleEdit = () => {
+    setSheetDirection(0);
+
     openTopSheet(NAVBAR_OFFSET);
 
     setTopSheetEnabled(false);
@@ -94,8 +98,8 @@ const StickerBlock: React.FC = () => {
           api={topSheetApi}
           y={topY}
           dragEnabled={topSheetEnabled}
-          shadowEnabled={!navbarOpen}
           curtainContainerRef={curtainContainerRef}
+          onDragStart={setSheetDirection}
         >
           <Toolbar onEdit={handleEdit} />
 
@@ -109,6 +113,15 @@ const StickerBlock: React.FC = () => {
             deleteSticker={deleteSticker}
           />
         </TopSheet>
+
+        <CardLayoutWrapper
+          y={topY}
+          curtainContainerRef={curtainContainerRef}
+          navbarOpen={navbarOpen}
+          topSheetDirection={topSheetDirection}
+        >
+          <div>div</div>
+        </CardLayoutWrapper>
 
         <Navbar
           isNavbarOpen={navbarOpen}

@@ -26,13 +26,3 @@ export const Sheet = styled.div<TransientSheetProps>(
     willChange: 'transform',
   })
 );
-
-export const Shadow = styled.div(() => ({
-  position: 'absolute',
-
-  height: '100%',
-  borderRadius: '0 0 40px 40px',
-  backgroundColor: '#22252a',
-
-  willChange: 'transform',
-}));

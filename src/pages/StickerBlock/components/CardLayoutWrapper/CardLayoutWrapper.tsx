@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { animated, SpringValue } from '@react-spring/web';
 
 export const Wrapper = styled.div(() => ({
+  zIndex: 80,
   position: 'absolute',
   height: '100%',
   willChange: 'transform',

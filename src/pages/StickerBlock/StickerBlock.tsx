@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useSpring } from '@react-spring/web';
 import {
   TopSheet,
@@ -124,7 +124,6 @@ const StickerBlock: React.FC = () => {
         </CardLayoutWrapper>
 
         <Navbar
-          isNavbarOpen={navbarOpen}
           onConfirm={handleOpenTopSheet}
           onOpen={handleOpenBottomSheet}
           hideDeleteBtn={dragStickerId === null}

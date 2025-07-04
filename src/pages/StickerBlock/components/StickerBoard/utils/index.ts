@@ -31,3 +31,22 @@ export const pixelsToPercent = (
     y: (yPx / containerRect.height) * 100,
   };
 };
+
+type Range = { min: number; max: number };
+type Size = { height: number; width: number };
+
+export function isInRange(
+  heightVal: Range,
+  widthVal: Range,
+  currVal: Size
+): boolean {
+  console.log('height', currVal.height);
+  console.log('width', currVal.width);
+
+  const heightInRange =
+    currVal.height >= heightVal.min && currVal.height <= heightVal.max;
+  const widthInRange =
+    currVal.width >= widthVal.min && currVal.width <= widthVal.max;
+
+  return heightInRange && widthInRange;
+}

@@ -3,7 +3,12 @@ import { animated, SpringRef, useSprings } from '@react-spring/web';
 import { createUseGesture, dragAction, pinchAction } from '@use-gesture/react';
 import { useDisableNativeGestures } from './hooks/useDisableNativeGestures';
 import { StickerData } from './hooks/useStickerData';
-import { createTransform, percentToPixels, pixelsToPercent } from './utils';
+import {
+  createTransform,
+  isInRange,
+  percentToPixels,
+  pixelsToPercent,
+} from './utils';
 import { DRAG_CONFIG, HALF_CARD_SIZE } from './constants';
 import * as S from './styles';
 
@@ -27,7 +32,7 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
   btnApi,
   stickerDataList,
   updSticker,
-  deleteSticker,
+  //   deleteSticker,
 }) => {
   useDisableNativeGestures();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,7 +89,14 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
         }
       },
 
-      onDrag: ({ args: [idx], pinching, cancel, offset: [x, y] }) => {
+      onDrag: ({
+        args: [idx],
+        pinching,
+        cancel,
+        offset: [x, y],
+        touches,
+        xy,
+      }) => {
         if (pinching) return cancel();
 
         springApi.start((i) =>
@@ -100,13 +112,28 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
 
         const container = containerRef.current;
         if (!container) return;
-        const containerHeight = container.getBoundingClientRect().height;
-        const startOffset = containerHeight - y;
-        const startAnimated = startOffset < 300;
+        // const { height, width } = container.getBoundingClientRect();
+        // const containerHeight = height;
+        // const startOffset = containerHeight - y;
+        // const startAnimated = startOffset < 300;
+        // if (startAnimated) {
+        //   const progress = Math.trunc(startOffset / 3);
+        //   btnApi.start({ percent: progress });
+        // }
+        const heightRange = { min: 870, max: 910 };
+        const widthRange = { min: 180, max: 250 };
+        const activeDeleteBtn = isInRange(heightRange, widthRange, {
+          height: xy[1],
+          width: xy[0],
+        });
 
-        if (startAnimated) {
-          const progress = Math.trunc(startOffset / 3);
-          btnApi.start({ percent: progress });
+        console.log('inRange', activeDeleteBtn);
+        console.log('Текущие координаты:', xy);
+        console.log('Число пальцев на экране:', touches);
+        if (activeDeleteBtn) {
+          btnApi.start({ percent: 0 });
+        } else {
+          btnApi.start({ percent: 100 });
         }
       },
 
@@ -125,16 +152,16 @@ const StickerBoard: React.FC<StickerBoardProps> = ({
         updSticker(newCurrentStickerData, idx);
         onStickerDragEnd();
 
-        const containerHeight = container.getBoundingClientRect().height;
-        const startOffset = containerHeight - offset[1];
-        const startAnimated = startOffset < 300;
+        // const containerHeight = container.getBoundingClientRect().height;
+        // const startOffset = containerHeight - offset[1];
+        // const startAnimated = startOffset < 300;
 
-        if (startAnimated) {
-          const progress = Math.trunc(startOffset / 3);
-          if (progress === 0) {
-            deleteSticker(idx);
-          }
-        }
+        // if (startAnimated) {
+        //   const progress = Math.trunc(startOffset / 3);
+        //   if (progress === 0) {
+        //     deleteSticker(idx);
+        //   }
+        // }
       },
     },
     {

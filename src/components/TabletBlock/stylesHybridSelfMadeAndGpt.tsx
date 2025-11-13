@@ -11,53 +11,47 @@ export const Container = styled.div`
 export const CardWrapper = styled.div`
   box-sizing: border-box;
   width: 600px;
-
   max-height: 920px;
   height: 100%;
-
   position: relative;
   margin: 0 auto;
-
-  border: 1px solid red;
 `;
 
 const cardBase = css<{ $isActive: boolean }>`
   position: absolute;
-  left: 50%;
   border-radius: 40px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  touch-action: none;
-  user-select: none;
-  
-  /* Base dimensions - inactive state */
-  width: 520px;
-  height: 773px;
-  
-  /* GPU-optimized transforms */
-  will-change: transform;
-  transform: translateX(-50%) translateZ(0) ${({ $isActive }) =>
-    $isActive
-      ? 'scaleX(1.154) scaleY(1.154)' /* 600/520 = 1.154, active scaling */
-      : 'scaleX(1) scaleY(1)'};
+
+  left: ${({ $isActive }) => ($isActive ? ' 0px' : '40px')};
+  right: ${({ $isActive }) => ($isActive ? ' 0px' : '40px')};
 
   z-index: ${({ $isActive }) => ($isActive ? 1 : 0)};
+  pointer-events: ${({ $isActive }) => ($isActive ? 'auto' : 'none')};
 
   transition:
-    background-color 0.3s,
-    transform 0.3s;
+    top 300ms ease-in-out,
+    bottom 300ms ease-in-out,
+    left 300ms ease-in-out,
+    right 300ms ease-in-out,
+    background-color 300ms ease-out;
 `;
 
 export const TopCard = styled.div<{ $isActive: boolean }>`
   ${cardBase}
   top: 0;
+  bottom: ${({ $isActive }) =>
+    $isActive ? 'calc(100% - 892px)' : 'calc(100% - 773px)'};
   background-color: #fff;
 `;
 
 export const BottomCard = styled.div<{ $isActive: boolean }>`
   ${cardBase}
   bottom: 0;
+  top: ${({ $isActive }) =>
+    $isActive ? 'calc(100% - 892px)' : 'calc(100% - 773px)'};
   background-color: ${({ $isActive }) => ($isActive ? '#22252A' : '#E3E4E6')};
 
   &::before {
@@ -68,7 +62,7 @@ export const BottomCard = styled.div<{ $isActive: boolean }>`
     height: 4px;
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);
     top: -10px;
+    transform: translateX(-50%);
   }
 `;
